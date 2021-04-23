@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+    {% block styles %}
+    <title>Covid 19 Resources</title>
+    <style>
+        
+        .filter{
+            margin-top: 5%;
+        }
+
+        .col-lg-6,.col-lg-12{
+            margin-bottom: 2%;
+        }
+        h3{
+            margin-bottom: 3%;
+        }
+        #state{
+            width: 50%;
+            margin: auto;
+        }
+        .btn{
+            width: 200px !important;
+            margin: auto;
+        }
+        .resource-cards{
+            margin-top: 5%;
+        }
+        .resource-cards h3{
+
+            text-align: center;
+        }
+        .resource-card{
+            height: fit-content;
+            border: 2px solid rgb(121, 119, 119);
+            
+            width: 80%;
+            margin: auto;
+            margin-bottom: 5%;
+            padding: 1%;
+        }
+        .top-row{
+            display: flex;
+            justify-content: space-between;
+        }
+        .more {display: none;}
+        .desc{
+            text-align: center;
+        }
+        .desc p{
+            text-align: left;
+        }
+        .image-container img{
+            -webkit-box-shadow: 5px 5px 23px 0px rgba(50, 50, 50, 0.46);
+            -moz-box-shadow:    5px 5px 23px 0px rgba(50, 50, 50, 0.46);
+            box-shadow:         5px 5px 23px 0px rgba(50, 50, 50, 0.46);
+        }
+        .read-more{
+            margin-bottom: 5%;
+        }
+        .image-row{
+            margin-bottom: 5%;
+        }
+        .image-row .col-lg-6,.image-container .col-lg-12{
+            margin-bottom: 5%;
+        }
+        .location{
+            display: flex;
+        }
+        .location p{
+            margin-right: 2%;
+        }
+        /* The Modal (background) */
+        .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        padding-top: 100px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+        }
+
+        /* Modal Content (Image) */
+        .modal-content {
+        margin: auto;
+        display: block;
+        width: 80%;
+        max-width: 700px;
+        margin-top: 2%;
+        
+        }
+
+        /* Caption of Modal Image (Image Text) - Same Width as the Image */
+        #caption {
+        margin: auto;
+        display: block;
+        width: 80%;
+        max-width: 700px;
+        text-align: center;
+        color: #ccc;
+        padding: 10px 0;
+        height: 150px;
+        }
+
+        /* Add Animation - Zoom in the Modal */
+        .modal-content, #caption {
+        animation-name: zoom;
+        animation-duration: 0.6s;
+        }
+
+        @keyframes zoom {
+        from {transform:scale(0)}
+        to {transform:scale(1)}
+        }
+
+        /* The Close Button */
+        .close {
+        position: absolute;
+        top: 115px;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        transition: 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+        color: #bbb;
+        text-decoration: none;
+        cursor: pointer;
+        }
+
+        /* 100% Image Width on Smaller Screens */
+        @media only screen and (max-width: 700px){
+            .modal-content {
+                width: 70%;
+                margin-top: 25%;
+            }
+        }
+        @media only screen and (max-width: 768px){
+            .image-row .myImg{
+                margin-bottom: 7%;
+            }
+        }
+    </style>
+    {% endblock styles %}
+
+    {% block content %}
+      <div class="container">
+        <div class="filter">
+            <h3>Search Resources by filters</h3>
+            <form action="{% url 'mainApp:filter_index' %}" method="post"><div class="filter-options row">
+                {% csrf_token %}
+                <div class="col-lg-6">
+                    <select name='resourceType' class="form-select" id="resource" aria-label="Default select example" required>
+                        <option value="null" selected>Resource Type</option>
+                        <option value="Hospital beds">Hospital Beds</option>
+                        <option value="Oxygen Cylinders">Oxygen Cylinders</option>
+                        <option value="Remdesivir">Remdesivir</option>
+                        <option value="Other Medicines">Other Medicines</option>
+                        <option value="Everything else">Everything else</option>
+                    </select>
+                </div>
+                <div class="col-lg-6">
+                    <select class="form-select" onchange="print_city('state', this.selectedIndex);" id="sts" name ="state" class="form-control" required></select>
+                </div>
+    
+                <div class="col-lg-12">
+                    <select name="city" id ="state" class="form-control form-select" required></select>
+                </div>
+                <button type="submit" class="btn btn-success" id="filter-search">Search</button>
+                
+                <script language="javascript">print_state("sts");</script>
+            </div>
+        </form>
+            
+            
+            
+
+        </div>
+        <div id="myModal" class="modal">
+
+            <!-- The Close Button -->
+            <span class="close">&times;</span>
+            <div class="content-image">
+                
+                
+                <!-- Modal Content (The Image) -->
+                <img class="modal-content" id="img01">
+                
+                
+            </div>
+            
+            <!-- Modal Caption (Image Text) -->
+            
+        </div>
+
+        <div class="resource-cards">
+            <h3>All Resources</h3>
+            {% if resources %}
+                {% for i in resources %}
+                    <div class="resource-card">
+                        <div class="top-row">
+                            <p>Date Added : {{i.date_added}}</p>
+                            <p>Tags : {% if i.tags %} {{i.tags|safe}} {% else %} None {% endif %} </p>
+                        </div>
+                        <div class="content">
+                            <h4>{{i.title}}</h4>
+                            <hr>
+                            <div class="desc">
+                                
+                                <p>{{i.description|slice:":250"|linebreaksbr }}<span id="dots">...</span><span class="more" id="{{i.id}}">{{i.description|slice:"250:"|linebreaksbr }}</span></p>
+
+                                <button class="btn btn-primary read-more" onclick="myFunction('{{i.id}}')" id="btn{{i.id}}">Read more</button>
+
+                                <div class="row image-row">
+                                    <div class="col-lg-4 col-sm-12 image-container">
+                                        {% if i.image1URL %}
+                                            <img class="myImg" width="250px" src="{{i.image1URL}}" alt="">
+                                        {% endif %}
+
+                                    </div>
+                                    <div class="col-lg-4 col-sm-12 image-container">
+                                        {% if i.image2URL %}
+                                            <img class="myImg" width="250px" src="{{i.image2URL}}" alt="">
+                                        {% endif %}
+                                        
+                                    </div>
+                                    <div class="col-lg-4 col-sm-12 image-container">
+                                        {% if i.image3URL %}
+                                            <img class="myImg" width="250px" src="{{i.image3URL}}" alt="">
+                                        {% endif %}
+                                        
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="location">
+                                <p><b> State :</b> {{i.state|safe}}</p>
+                                <p><b> City :</b> {{i.city|safe}}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}    
+            {% else %}
+                    <div class="no-info text-center">
+                        <h3>No matching resources found!</h3>
+                        <a href="{% url 'mainApp:index' %}">Clear all filters and go back?</a>
+                    </div>
+                    
+            {% endif %}
+             
+        </div>
+      </div>
+
+      
+      <script>
+            function myFunction(x) {
+
+                var dots = document.getElementById("dots");
+                var moreText = document.getElementById(x);
+                var btnText = document.getElementById("btn"+x);
+
+                if (dots.style.display === "none") {
+                    dots.style.display = "inline";
+                    btnText.innerHTML = "Read more";
+                    moreText.style.display = "none";
+                } else {
+
+                    dots.style.display = "none";
+                    btnText.innerHTML = "Read less";
+                    moreText.style.display = "inline";
+                }
+             }
+            
+            //  $('#filter-search').click(function(){
+            //     var resourceType=$("#resource").val()
+            //     var state=$("#sts").val()
+            //     var city=$("#state").val()
+            //     var url = "{% url 'mainApp:filter_index' %}";
+            //     var data={ resourceType:resourceType,state:state,city:city }
+            //     console.log(data)
+            //     $.ajax({
+            //         headers: { "X-CSRFToken": getCookie("csrftoken") },
+            //         url: url,
+            //         type: "POST",
+            //         data:data ,
+            //     });
+            //  });
+            //  function getCookie(c_name) {
+            //     if (document.cookie.length > 0) {
+            //     c_start = document.cookie.indexOf(c_name + "=");
+            //     if (c_start != -1) {
+            //         c_start = c_start + c_name.length + 1;
+            //         c_end = document.cookie.indexOf(";", c_start);
+            //         if (c_end == -1) c_end = document.cookie.length;
+            //         return unescape(document.cookie.substring(c_start, c_end));
+            //     }
+            //     }
+            //     return "";
+            // }
+            var modal = document.getElementById("myModal");
+        var elements = document.getElementsByClassName("myImg");
+        // Get the image and insert it inside the modal - use its "alt" text as a caption
+
+        var modalImg = document.getElementById("img01");
+        
+        for (var i = 0; i < elements.length; i++) {
+
+            elements[i].addEventListener("click", function(){
+                modal.style.display = "block";
+                modalImg.src = this.src;
+                var id = (this.id)
+
+                
+
+            });
+        }
+        
+
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+
+        modal.style.display = "none";
+        }
+      </script>
+    {% endblock content %}
